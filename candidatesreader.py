@@ -173,32 +173,3 @@ class RefernceManager:
     def get_all_refs(self, index):
         assert index < self.num_lines, "Index out of bound"
         return [self.ref_list[k][index] for k in range(self.num_refs)]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

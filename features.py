@@ -14,7 +14,7 @@ from . import log_utils as L
 # For feature functions
 
 # For KenLM features
-from .lib import kenlm
+import kenlm
 
 
 # For edit operations feature
