@@ -9,17 +9,16 @@ import sys
 
 # Initializing the logging module
 import logging
-import log_utils as L
+from . import log_utils as L
 
 # For feature functions
 
 # For KenLM features
-sys.path.insert(0, 'lib/kenlm_python/')
-import kenlm
+from .lib import kenlm
 
 
 # For edit operations feature
-from lib import levenshtein
+from .lib import levenshtein
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +88,7 @@ class EditOps:
         s = 0 
         bpointers_sorted = dict()
 
-        for k, v in bpointers.iteritems():
+        for k, v in bpointers.items():
             bpointers_sorted[k] =sorted(v, key=lambda x: x[1][0])
 
         # Traverse the backpointer graph to get the edit ops counts
@@ -180,7 +179,7 @@ class LexWeights:
                         start_idx = -1
                         end_idx = -1
                         delete_rows = []
-                        for i in xrange(len(candidate_tokens)):
+                        for i in range(len(candidate_tokens)):
                             cand_token = candidate_tokens[i]
                             if len(cand_token)>=2 and cand_token[-2:] == '@@':
                                 if start_idx == -1:
@@ -191,14 +190,14 @@ class LexWeights:
                             else:
                                 if start_idx != -1:
                                     aligns[start_idx] = np.sum(aligns[start_idx:end_idx+2], axis=0) / (end_idx - start_idx + 2)
-                                    delete_rows += range(start_idx+1, end_idx+2)
+                                    delete_rows += list(range(start_idx+1, end_idx+2))
                                     start_idx = -1 
 
                         ### Summing up across columns (src_tokens) where BPE split occurs
                         start_idx = -1
                         end_idx = -1
                         delete_cols = []
-                        for j in xrange(len(src_tokens)):
+                        for j in range(len(src_tokens)):
                             src_token = src_tokens[j]
                             if len(src_token) >= 2 and src_token[-2:]== '@@':
                                 if start_idx == -1:
@@ -209,7 +208,7 @@ class LexWeights:
                             else:
                                 if start_idx != -1:
                                     aligns[:,start_idx] = np.sum(aligns[:, start_idx:end_idx+2], axis=1)
-                                    delete_cols += range(start_idx+1, end_idx+2)
+                                    delete_cols += list(range(start_idx+1, end_idx+2))
                                     start_idx = -1
 
                         #print aligns.shape, delete_rows, delete_cols
@@ -266,14 +265,14 @@ class LexWeights:
     def get_score(self, source, candidate, item_idx ):
         aligns = self.align_dict[item_idx]
         if (len(candidate.split())+1, len(source.split())+1) != aligns.shape and (len(candidate.split()), len(source.split())+1) != aligns.shape:
-            print source, candidate, aligns.shape, len(source.split()), len(candidate.split())
+            print(source, candidate, aligns.shape, len(source.split()), len(candidate.split()))
         assert (len(candidate.split())+1, len(source.split())+1) == aligns.shape or (len(candidate.split()), len(source.split())+1) == aligns.shape, "Alignment dimension mismatch at: " + str(item_idx)
         candidate_tokens = candidate.split()
         source_tokens = source.split()
         f2e_score = 0.0     
         e2f_score = 0.0
-        for i in xrange(len(candidate_tokens)):
-            for j in xrange(len(source_tokens)):
+        for i in range(len(candidate_tokens)):
+            for j in range(len(source_tokens)):
                 #print "CANDIDATE_TOKEN:", candidate_tokens[i], "SOURCE_TOKEN:", source_tokens[j], "PROB:", self.f2e_dict[(candidate_tokens[i], source_tokens[j])], "ALIGN:", aligns[i,j]
                 if self.f2e_dict:
                     if (candidate_tokens[i], source_tokens[j]) in self.f2e_dict:

@@ -25,14 +25,17 @@ class NBestList():
     def next_item(self):
         assert self.mode == 'r', "next() method can only be used in 'r' mode"
         try:
-            segments = self.nbest_file.next().split("|||")
+            segments = self.nbest_file.readline().split("|||")
+            if (len(segments) <= 1):
+                self.close()
+                raise StopIteration
         except StopIteration:
             self.close()
             raise StopIteration
         try:
             index = int(segments[0])
         except ValueError:
-                    print >> sys.stderr, "The first segment in an n-best list must be an integer"
+                    print("The first segment in an n-best list must be an integer", file=sys.stderr)
             #L.error("The first segment in an n-best list must be an integer")
         hyp = segments[1].strip()
         features = segments[2].strip()
@@ -48,7 +51,7 @@ class NBestList():
             word_alignments = segments[5].strip()
         return NBestItem(index, hyp, features, score, phrase_alignments, word_alignments)
 
-    def next(self): # Returns a group of NBestItems with the same index
+    def __next__(self): # Returns a group of NBestItems with the same index
         if self.eof_flag == True:
             raise StopIteration
         assert self.mode == 'r', "next_group() method can only be used in 'r' mode"
@@ -74,7 +77,7 @@ class NBestList():
 
     def write(self, item):
         assert self.mode == 'w', "write() method can only be used in 'w' mode"
-        self.nbest_file.write(unicode(item) + "\n")
+        self.nbest_file.write(str(item) + "\n")
     
     def close(self):
         self.nbest_file.close()
@@ -90,8 +93,8 @@ class NBestItem:
         self.phrase_alignments = phrase_alignments
         self.word_alignments = word_alignments
 
-    def __unicode__(self):
-        output = ' ||| '.join([unicode(self.index), self.hyp, self.features])
+    def __str__(self):
+        output = ' ||| '.join([str(self.index), self.hyp, self.features])
         if self.score:
             output = output + ' ||| ' + self.score
         if self.phrase_alignments:
@@ -110,8 +113,8 @@ class NBestGroup:
         self.group = []
         self.ref_manager = refrence_manager
 
-    def __unicode__(self):
-        return '\n'.join([unicode(item) for item in self.group])
+    def __str__(self):
+        return '\n'.join([str(item) for item in self.group])
 
     def __iter__(self):
         self.item_index = 0
@@ -131,7 +134,7 @@ class NBestGroup:
             assert item.index == self.group_index, "Cannot add an nbest item with an incompatible index"
         self.group.append(item)
 
-    def next(self):
+    def __next__(self):
         #if self.item_index < len(self.group):
         try:
             item = self.group[self.item_index]
